@@ -8,13 +8,19 @@ import { GuessingLetter } from './models/letter';
 	styleUrls: ['./app.component.less'],
 })
 export class AppComponent implements OnInit {
+	readonly MAX_MISTAKES_NUMBER: number = 6;
+	readonly MAX_LEVEL: number = 5;
+
 	gallows: AnimationSegment[] = [];
 	stickman: AnimationSegment[] = [];
 
 	guessingWord: GuessingLetter[] = [];
 
-	readonly MAX_MISTAKES_NUMBER: number = 6;
 	mistakesCounter: number = 0;
+	level: number = 0;
+
+	timerValue: number = 0;
+	timerInterval: ReturnType<typeof setInterval> | null = null;
 
 	@HostListener('document:keydown', ['$event']) onKeydown(event: KeyboardEvent) {
 		this.onKeySelect(event.key);
@@ -23,6 +29,7 @@ export class AppComponent implements OnInit {
 	ngOnInit(): void {
 		this.prepareAnimation();
 		this.prepareGuessingWord('jabłko');
+		this.startTimer();
 	}
 
 	prepareAnimation(): void {
@@ -59,7 +66,23 @@ export class AppComponent implements OnInit {
 				isShow: false,
 			},
 			{
-				element: { d: 'M 90 56 l 0 20 M 90 60 l -15 10 M 90 60 l 15 10 M 75 93 l 15 -18 M 90 75 l -15 18 M 90 75 l 15 18' },
+				element: { d: 'M 90 56 l 0 20' },
+				isShow: false,
+			},
+			{
+				element: { d: 'M 90 60 l -15 10' },
+				isShow: false,
+			},
+			{
+				element: { d: 'M 90 60 l 15 10' },
+				isShow: false,
+			},
+			{
+				element: { d: 'M 75 93 l 15 -18' },
+				isShow: false,
+			},
+			{
+				element: { d: 'M 90 75 l 15 18' },
 				isShow: false,
 			},
 		];
@@ -90,8 +113,8 @@ export class AppComponent implements OnInit {
 				this.showStickman();
 
 				setTimeout(() => {
-					// this.gameOver();
-				}, 1000);
+					this.gameOver();
+				}, 1500);
 			}
 		}
 	}
@@ -104,9 +127,13 @@ export class AppComponent implements OnInit {
 		this.stickman.forEach((segment) => (segment.isShow = true));
 	}
 
-	// gameOver(): void {
-
-	// }
+	gameOver(): void {
+		(this.stickman[0].element as Circle) = { cx: 95, cy: 50, r: 8 };
+		(this.stickman[2].element as Path).d = 'M 90 60 l -7 17';
+		(this.stickman[3].element as Path).d = 'M 90 60 l 7 17';
+		(this.stickman[4].element as Path).d = 'M 90 75 l -7 23';
+		(this.stickman[5].element as Path).d = 'M 90 75 l 7 24';
+	}
 
 	getSegmentPath(segment: AnimationSegment): Path {
 		return segment.element as Path;
@@ -114,5 +141,38 @@ export class AppComponent implements OnInit {
 
 	getSegmentCircle(segment: AnimationSegment): Circle {
 		return segment.element as Circle;
+	}
+
+	setStickmanLive(): void {
+		(this.stickman[0].element as Circle) = { cx: 90, cy: 48, r: 8 };
+		(this.stickman[2].element as Path).d = 'M 90 60 l -15 10';
+		(this.stickman[3].element as Path).d = 'M 90 60 l 15 10';
+		(this.stickman[4].element as Path).d = 'M 75 93 l 15 -18';
+		(this.stickman[5].element as Path).d = 'M 90 75 l 15 1';
+	}
+
+	setStickmanDead(): void {
+		(this.stickman[0].element as Circle) = { cx: 95, cy: 50, r: 8 };
+		(this.stickman[2].element as Path).d = 'M 90 60 l -7 17';
+		(this.stickman[3].element as Path).d = 'M 90 60 l 7 17';
+		(this.stickman[4].element as Path).d = 'M 90 75 l -7 23';
+		(this.stickman[5].element as Path).d = 'M 90 75 l 7 24';
+	}
+
+	startTimer(): void {
+		this.timerInterval = setInterval(() => {
+			this.timerValue++;
+		}, 1000);
+	}
+
+	pauseTimer(): void {
+		if (this.timerInterval != null) {
+			clearInterval(this.timerInterval);
+		}
+	}
+
+	clearTimer(): void {
+		this.pauseTimer();
+		this.timerValue = 0;
 	}
 }

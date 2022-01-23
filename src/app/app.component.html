@@ -1,5 +1,9 @@
 <div class="notebook">
     <div class="page">
+        <div class="timer text">
+            {{timerValue * 1000 | date: 'mm:ss'}}
+        </div>
+
         <svg class="gallows" viewBox="0 0 120 110" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
             <defs>
                 <!-- pencil filter -->
@@ -24,20 +28,26 @@
             </defs>
 
             <g filter="url(#pencilTexture4)">
-            <!-- gallows -->
-            <g *ngFor="let segment of gallows">
-                <path class="gallows-path" *ngIf="segment.isShow" [attr.d]="getSegmentPath(segment).d"/>
-            </g>
-            
-            <!-- stickman -->
-            <circle class="gallows-path" *ngIf="stickman[0].isShow" [attr.cx]="getSegmentCircle(stickman[0]).cx" [attr.cy]="getSegmentCircle(stickman[0]).cy" [attr.r]="getSegmentCircle(stickman[0]).r"/>
-            <path class="gallows-path" *ngIf="stickman[1].isShow" [attr.d]="getSegmentPath(stickman[1]).d"/>
+                <!-- gallows -->
+                <g *ngFor="let segment of gallows">
+                    <path class="gallows-path" *ngIf="segment.isShow" [attr.d]="getSegmentPath(segment).d"/>
+                </g>
+                
+                <!-- stickman -->
+                <g *ngFor="let segment of stickman">
+                    <g *ngIf="getSegmentPath(segment).d != null">
+                        <path class="gallows-path" *ngIf="segment.isShow" [attr.d]="getSegmentPath(segment).d"/>
+                    </g>
+                    <g *ngIf="getSegmentCircle(segment).r != null">
+                        <circle class="gallows-path" *ngIf="segment.isShow" [attr.cx]="getSegmentCircle(segment).cx" [attr.cy]="getSegmentCircle(segment).cy" [attr.r]="getSegmentCircle(segment).r"/>
+                    </g>
+                </g>
             </g>
         </svg>
 
         <div class="guessing-word">
             <div class="letter-container" *ngFor="let letter of guessingWord">
-                <div class="letter" *ngIf="letter.isShow"> {{ letter.char }} </div>
+                <div class="text" *ngIf="letter.isShow"> {{ letter.char }} </div>
             </div>
         </div>
     </div>
