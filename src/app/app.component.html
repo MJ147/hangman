@@ -8,51 +8,11 @@
         </div>
 
         <div class="svg-wrapper">
-            <svg class="gallows" *ngIf="usedLetters.length; else infoText" viewBox="0 0 120 110" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
-                <defs>
-                    <!-- pencil filter -->
-                    <filter x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" id="pencilTexture4">
-                        <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" seed="1" result="f1">
-                        </feTurbulence>
-                        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="5" in="SourceGraphic" in2="f1" result="f4">
-                        </feDisplacementMap>
-                        <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" seed="10" result="f2">
-                        </feTurbulence>
-                        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="5" in="SourceGraphic" in2="f2" result="f5">
-                        </feDisplacementMap>
-                        <feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="2" seed="100" result="f3">
-                        </feTurbulence>
-                        <feDisplacementMap xChannelSelector="R" yChannelSelector="G" scale="3" in="SourceGraphic" in2="f3" result="f6">
-                        </feDisplacementMap>
-                        <feBlend mode="multiply" in2="f4" in="f5" result="out1">
-                        </feBlend>
-                        <feBlend mode="multiply" in="out1" in2="f6" result="out2">
-                        </feBlend>
-                    </filter>
-                </defs>
-
-
-                <g filter="url(#pencilTexture4)" (click)="onStickmanHelp()">
-                    <!-- gallows -->
-                    <g *ngFor="let segment of gallows">
-                        <path class="gallows-path" *ngIf="segment.isShow" [attr.d]="getSegmentPath(segment).d"/>
-                    </g>
-                    
-                    <!-- stickman -->
-                    <g *ngFor="let segment of stickman">
-                        <g *ngIf="getSegmentPath(segment).d != null">
-                            <path class="gallows-path" *ngIf="segment.isShow" [attr.d]="getSegmentPath(segment).d"/>
-                        </g>
-                        <g *ngIf="getSegmentCircle(segment).r != null">
-                            <circle class="gallows-path" *ngIf="segment.isShow" [attr.cx]="getSegmentCircle(segment).cx" [attr.cy]="getSegmentCircle(segment).cy" [attr.r]="getSegmentCircle(segment).r"/>
-                        </g>
-                    </g>
-                </g>
-            </svg>
-            <ng-template #infoText>
-                <div class="text">Wybierz literę z Twojej klawiatury, aby zacząć grę.</div>
-            </ng-template>
+           <app-svg-animation [hidden]="!usedLetters.length" [mistakesCounter]="mistakesCounter" [stickmanState]="stickmanState" (stickmanRescue)="stickmanRescue()"></app-svg-animation>
+           <div [hidden]="usedLetters.length" class="text">Wybierz literę z Twojej klawiatury, aby zacząć grę.</div>
         </div>
+        
+        
 
 
         <div class="guessing-word">
@@ -62,7 +22,7 @@
         </div>
 
         <div class="guessing-word">
-                <div class="text" *ngFor="let usedLetter of usedLetters" [ngStyle]="{'color': usedLetter.isShow ? 'green': ''}"> {{ usedLetter.char }} </div>
+            <div class="text" *ngFor="let usedLetter of usedLetters" [ngStyle]="{'color': usedLetter.isShow ? 'green': 'red'}"> {{ usedLetter.char }} </div>
         </div>
     </div>
 </div>

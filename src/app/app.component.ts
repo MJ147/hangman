@@ -1,8 +1,8 @@
+import { StickmanState } from './enum/stickman-state.enum';
 import { InfoDialogData } from './models/info-dialog-data';
 import { InfoPopupComponent } from './components/info-popup/info-popup.component';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { AnimationSegment, Circle, Path } from './models/animation';
 import { GuessingLetter } from './models/letter';
 import * as moment from 'moment';
 
@@ -15,9 +15,6 @@ export class AppComponent implements OnInit {
 	readonly MAX_MISTAKES_NUMBER: number = 6;
 	readonly MAX_LEVEL: number = 5;
 
-	gallows: AnimationSegment[] = [];
-	stickman: AnimationSegment[] = [];
-
 	guessingWordAsString: string = 'jabłko';
 	guessingWord: GuessingLetter[] = [];
 	usedLetters: GuessingLetter[] = [];
@@ -27,6 +24,8 @@ export class AppComponent implements OnInit {
 
 	timerValue: number = 0; // in seconds
 	timerInterval: ReturnType<typeof setInterval> | null = null;
+
+	stickmanState: StickmanState | null = null;
 
 	constructor(private _matDialog: MatDialog) {}
 
@@ -39,65 +38,8 @@ export class AppComponent implements OnInit {
 	}
 
 	ngOnInit(): void {
-		this.prepareAnimation();
 		this.prepareGuessingWord(this.guessingWordAsString);
 		this.startTimer();
-	}
-
-	prepareAnimation(): void {
-		this.gallows = [
-			{
-				element: { d: 'M 0 110 l 25 -30' },
-				isShow: false,
-			},
-			{
-				element: { d: 'M 25 80 l 25 30' },
-				isShow: false,
-			},
-			{
-				element: { d: 'M 25 80 l 0 -70' },
-				isShow: false,
-			},
-			{
-				element: { d: 'M 25 10 l 65 0' },
-				isShow: false,
-			},
-			{
-				element: { d: 'M 25 30 l 20 -20' },
-				isShow: false,
-			},
-			{
-				element: { d: 'M 90 10 l 0 30' },
-				isShow: false,
-			},
-		];
-
-		this.stickman = [
-			{
-				element: { cx: 90, cy: 48, r: 8 },
-				isShow: false,
-			},
-			{
-				element: { d: 'M 90 56 l 0 20' },
-				isShow: false,
-			},
-			{
-				element: { d: 'M 90 60 l -15 10' },
-				isShow: false,
-			},
-			{
-				element: { d: 'M 90 60 l 15 10' },
-				isShow: false,
-			},
-			{
-				element: { d: 'M 75 93 l 15 -18' },
-				isShow: false,
-			},
-			{
-				element: { d: 'M 90 75 l 15 18' },
-				isShow: false,
-			},
-		];
 	}
 
 	prepareGuessingWord(word: string): void {
@@ -117,10 +59,8 @@ export class AppComponent implements OnInit {
 			this.mistakesCounter =
 				this.mistakesCounter + 1 > this.MAX_MISTAKES_NUMBER ? this.MAX_MISTAKES_NUMBER : this.mistakesCounter + 1;
 
-			this.showGallowsSegment(this.mistakesCounter - 1);
-
 			if (this.mistakesCounter === this.MAX_MISTAKES_NUMBER) {
-				this.showStickman();
+				this.stickmanState = StickmanState.Live;
 
 				// show game over hangman after 1 sec
 				setTimeout(() => {
@@ -149,22 +89,9 @@ export class AppComponent implements OnInit {
 		return isGuessed;
 	}
 
-	showGallowsSegment(segmentNumber: number): void {
-		this.gallows[segmentNumber].isShow = true;
-	}
-
-	showStickman(): void {
-		this.stickman.forEach((segment) => (segment.isShow = true));
-	}
-
 	gameOver(): void {
 		this.pauseTimer();
-
-		(this.stickman[0].element as Circle) = { cx: 95, cy: 50, r: 8 };
-		(this.stickman[2].element as Path).d = 'M 90 60 l -7 17';
-		(this.stickman[3].element as Path).d = 'M 90 60 l 7 17';
-		(this.stickman[4].element as Path).d = 'M 90 75 l -7 23';
-		(this.stickman[5].element as Path).d = 'M 90 75 l 7 24';
+		this.stickmanState = StickmanState.Dead;
 
 		const dialogPopup: InfoDialogData = {
 			title: 'Przegrałeś',
@@ -174,8 +101,10 @@ export class AppComponent implements OnInit {
 
 		this.openPopup(dialogPopup)
 			.afterClosed()
-			.subscribe(() => {
-				this.resetGame();
+			.subscribe((value) => {
+				if (value) {
+					this.resetGame();
+				}
 			});
 	}
 
@@ -216,7 +145,6 @@ export class AppComponent implements OnInit {
 	}
 
 	resetGame(isNewLvl: boolean = false): void {
-		this.prepareAnimation();
 		this.prepareGuessingWord(this.guessingWordAsString);
 		this.mistakesCounter = 0;
 		this.usedLetters = [];
@@ -229,36 +157,9 @@ export class AppComponent implements OnInit {
 		this.startTimer();
 	}
 
-	getSegmentPath(segment: AnimationSegment): Path {
-		return segment.element as Path;
-	}
-
-	getSegmentCircle(segment: AnimationSegment): Circle {
-		return segment.element as Circle;
-	}
-
-	setStickmanLive(): void {
-		(this.stickman[0].element as Circle) = { cx: 90, cy: 48, r: 8 };
-		(this.stickman[2].element as Path).d = 'M 90 60 l -15 10';
-		(this.stickman[3].element as Path).d = 'M 90 60 l 15 10';
-		(this.stickman[4].element as Path).d = 'M 75 93 l 15 -18';
-		(this.stickman[5].element as Path).d = 'M 90 75 l 15 18';
-	}
-
-	setStickmanDead(): void {
-		(this.stickman[0].element as Circle) = { cx: 95, cy: 50, r: 8 };
-		(this.stickman[2].element as Path).d = 'M 90 60 l -7 17';
-		(this.stickman[3].element as Path).d = 'M 90 60 l 7 17';
-		(this.stickman[4].element as Path).d = 'M 90 75 l -7 23';
-		(this.stickman[5].element as Path).d = 'M 90 75 l 7 24';
-	}
-
-	onStickmanHelp(): void {
-		(this.stickman[0].element as Circle) = { cx: 90, cy: 48, r: 8 };
-		(this.stickman[2].element as Path).d = 'M 90 60 l -15 -10';
-		(this.stickman[3].element as Path).d = 'M 90 60 l 15 -10';
-		(this.stickman[4].element as Path).d = 'M 75 93 l 15 -18';
-		(this.stickman[5].element as Path).d = 'M 90 75 l 15 18';
+	stickmanRescue(): void {
+		this.level = 5;
+		this.endLevel();
 	}
 
 	startTimer(): void {

@@ -41,33 +41,9 @@
 		.svg-wrapper {
 			flex: 1;
 			display: flex;
+			flex-direction: column;
 			align-items: center;
 			justify-content: center;
-
-			.gallows {
-				width: 70%;
-
-				.gallows-path {
-					stroke-dasharray: 100%;
-					animation: dash 2s ease-in-out forwards;
-				}
-
-				@keyframes dash {
-					0% {
-						stroke-dashoffset: 100%;
-					}
-					100% {
-						stroke-dashoffset: 0;
-					}
-				}
-			}
-		}
-
-		path,
-		circle {
-			fill: transparent;
-			stroke: @line-color;
-			stroke-width: 0.6;
 		}
 
 		.guessing-word {
