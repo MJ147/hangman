@@ -26,7 +26,6 @@ export class SvgAnimationComponent implements OnInit {
 
 	ngOnInit(): void {
 		this.prepareAnimation();
-		console.log(1, this.gallows);
 	}
 
 	prepareAnimation(): void {
@@ -138,6 +137,7 @@ export class SvgAnimationComponent implements OnInit {
 	showGallowsSegment(segmentNumber: number): void {
 		if (segmentNumber < 0) {
 			this.prepareAnimation();
+			return;
 		}
 
 		this.gallows[segmentNumber].isShow = true;

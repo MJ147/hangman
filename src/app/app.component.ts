@@ -1,3 +1,4 @@
+import { GameService } from './services/game.service';
 import { StickmanState } from './enum/stickman-state.enum';
 import { InfoDialogData } from './models/info-dialog-data';
 import { InfoPopupComponent } from './components/info-popup/info-popup.component';
@@ -5,6 +6,8 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { GuessingLetter } from './models/letter';
 import * as moment from 'moment';
+import { tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 @Component({
 	selector: 'app-root',
@@ -15,7 +18,7 @@ export class AppComponent implements OnInit {
 	readonly MAX_MISTAKES_NUMBER: number = 6;
 	readonly MAX_LEVEL: number = 5;
 
-	guessingWordAsString: string = 'jabłko';
+	guessingWords: string[] = [];
 	guessingWord: GuessingLetter[] = [];
 	usedLetters: GuessingLetter[] = [];
 
@@ -27,7 +30,7 @@ export class AppComponent implements OnInit {
 
 	stickmanState: StickmanState | null = null;
 
-	constructor(private _matDialog: MatDialog) {}
+	constructor(private _matDialog: MatDialog, private _gameService: GameService) {}
 
 	@HostListener('document:keydown', ['$event']) onKeydown(event: KeyboardEvent) {
 		if (!event.code.includes('Key') || this._matDialog.openDialogs.length) {
@@ -37,9 +40,17 @@ export class AppComponent implements OnInit {
 		this.onKeySelect(event.key.toUpperCase());
 	}
 
-	ngOnInit(): void {
-		this.prepareGuessingWord(this.guessingWordAsString);
+	async ngOnInit(): Promise<void> {
+		await this.loadGuessingWords();
+		this.prepareGuessingWord(this.guessingWords[this.level - 1]);
 		this.startTimer();
+	}
+
+	loadGuessingWords(): Promise<string[]> {
+		return this._gameService
+			.getRandomWords(this.level)
+			.pipe(tap((words) => (this.guessingWords = words)))
+			.toPromise();
 	}
 
 	prepareGuessingWord(word: string): void {
@@ -95,7 +106,7 @@ export class AppComponent implements OnInit {
 
 		const dialogPopup: InfoDialogData = {
 			title: 'Przegrałeś',
-			content: `Szukane słowo to: ${this.guessingWordAsString}`,
+			content: `Szukane słowo to: ${this.guessingWords[this.level - 1]}`,
 			buttonText: 'Spróbuj ponownie',
 		};
 
@@ -144,16 +155,16 @@ export class AppComponent implements OnInit {
 		});
 	}
 
-	resetGame(isNewLvl: boolean = false): void {
-		this.prepareGuessingWord(this.guessingWordAsString);
-		this.mistakesCounter = 0;
-		this.usedLetters = [];
-
+	async resetGame(isNewLvl: boolean = false): Promise<void> {
 		if (!isNewLvl) {
+			await this.loadGuessingWords();
 			this.clearTimer();
 			this.level = 1;
 		}
 
+		this.prepareGuessingWord(this.guessingWords[this.level - 1]);
+		this.mistakesCounter = 0;
+		this.usedLetters = [];
 		this.startTimer();
 	}
 
