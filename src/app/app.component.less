@@ -12,16 +12,25 @@
 	.page {
 		display: flex;
 		flex-direction: column;
-		justify-content: center;
 		align-items: center;
+		justify-content: space-around;
 		width: 70%;
 		height: 100%;
 		margin: 0 15%;
+		padding: 8% 0;
+		box-sizing: border-box;
 		border-right: 1px solid rgba(255, 0, 0, 0.514);
+
+		.level {
+			width: 80px;
+			height: 30px;
+			margin-bottom: 5%;
+		}
 
 		.timer {
 			width: 60px;
 			height: 30px;
+
 			border: 2px solid @line-color;
 			border-top-left-radius: 255px 15px;
 			border-top-right-radius: 15px 225px;
@@ -29,27 +38,34 @@
 			border-bottom-left-radius: 15px 255px;
 		}
 
-		.gallows {
-			width: 70%;
+		.svg-wrapper {
+			flex: 1;
+			display: flex;
+			align-items: center;
+			justify-content: center;
 
-			.gallows-path {
-				stroke-dasharray: 100%;
-				animation: dash 2s ease-in-out forwards;
-			}
+			.gallows {
+				width: 70%;
 
-			@keyframes dash {
-				0% {
-					stroke-dashoffset: 100%;
+				.gallows-path {
+					stroke-dasharray: 100%;
+					animation: dash 2s ease-in-out forwards;
 				}
-				100% {
-					stroke-dashoffset: 0;
+
+				@keyframes dash {
+					0% {
+						stroke-dashoffset: 100%;
+					}
+					100% {
+						stroke-dashoffset: 0;
+					}
 				}
 			}
 		}
 
 		path,
 		circle {
-			fill: none;
+			fill: transparent;
 			stroke: @line-color;
 			stroke-width: 0.6;
 		}
@@ -58,13 +74,14 @@
 			display: flex;
 			gap: 10px;
 			justify-content: center;
+			height: 27px;
 			width: 100%;
+			margin-bottom: 5%;
 
 			.letter-container {
 				border-bottom: 2px solid @line-color;
 				border-bottom-right-radius: 225px 15px;
 				width: 20px;
-				height: 27px;
 			}
 		}
 
