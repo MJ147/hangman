@@ -1,6 +1,10 @@
+import { InfoDialogData } from './models/info-dialog-data';
+import { InfoPopupComponent } from './components/info-popup/info-popup.component';
 import { Component, HostListener, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { AnimationSegment, Circle, Path } from './models/animation';
 import { GuessingLetter } from './models/letter';
+import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
 
 @Component({
 	selector: 'app-root',
@@ -14,6 +18,7 @@ export class AppComponent implements OnInit {
 	gallows: AnimationSegment[] = [];
 	stickman: AnimationSegment[] = [];
 
+	guessingWordAsString: string = 'jabłko';
 	guessingWord: GuessingLetter[] = [];
 
 	mistakesCounter: number = 0;
@@ -22,13 +27,15 @@ export class AppComponent implements OnInit {
 	timerValue: number = 0;
 	timerInterval: ReturnType<typeof setInterval> | null = null;
 
+	constructor(private _matDialog: MatDialog) {}
+
 	@HostListener('document:keydown', ['$event']) onKeydown(event: KeyboardEvent) {
 		this.onKeySelect(event.key);
 	}
 
 	ngOnInit(): void {
 		this.prepareAnimation();
-		this.prepareGuessingWord('jabłko');
+		this.prepareGuessingWord(this.guessingWordAsString);
 		this.startTimer();
 	}
 
@@ -93,6 +100,10 @@ export class AppComponent implements OnInit {
 	}
 
 	onKeySelect(key: string): void {
+		if (this.mistakesCounter === this.MAX_MISTAKES_NUMBER) {
+			return;
+		}
+
 		let isGuessed = false;
 
 		this.guessingWord.forEach((letter) => {
@@ -107,7 +118,6 @@ export class AppComponent implements OnInit {
 				this.mistakesCounter + 1 > this.MAX_MISTAKES_NUMBER ? this.MAX_MISTAKES_NUMBER : this.mistakesCounter + 1;
 
 			this.showGallowsSegment(this.mistakesCounter - 1);
-			console.log(this.mistakesCounter);
 
 			if (this.mistakesCounter === this.MAX_MISTAKES_NUMBER) {
 				this.showStickman();
@@ -128,11 +138,36 @@ export class AppComponent implements OnInit {
 	}
 
 	gameOver(): void {
+		this.pauseTimer();
+
 		(this.stickman[0].element as Circle) = { cx: 95, cy: 50, r: 8 };
 		(this.stickman[2].element as Path).d = 'M 90 60 l -7 17';
 		(this.stickman[3].element as Path).d = 'M 90 60 l 7 17';
 		(this.stickman[4].element as Path).d = 'M 90 75 l -7 23';
 		(this.stickman[5].element as Path).d = 'M 90 75 l 7 24';
+
+		this._matDialog
+			.open<InfoPopupComponent, InfoDialogData>(InfoPopupComponent, {
+				data: { title: 'Przegrałeś', content: `Szukane słowo to: ${this.guessingWordAsString}`, buttonText: 'Spróbuj ponownie' },
+				autoFocus: false,
+				position: { top: '50px' },
+			})
+			.afterClosed()
+			.subscribe(() => {
+				this.resetGame();
+			});
+	}
+
+	resetGame(isNewLvl: boolean = false): void {
+		this.clearTimer();
+		this.prepareAnimation();
+		this.prepareGuessingWord(this.guessingWordAsString);
+		this.startTimer();
+		this.mistakesCounter = 0;
+
+		if (isNewLvl) {
+			this.level = 1;
+		}
 	}
 
 	getSegmentPath(segment: AnimationSegment): Path {
